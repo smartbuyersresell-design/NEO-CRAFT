@@ -105,25 +105,7 @@
     ];
 
     function loadThreeThenGame(sourceIndex) {
-      if (sourceIndex >= THREE_SOURCES.length) {
-        showEngineError(
-          '⚠ 3D engine (three.js) load වුනේ නෑ. Internet connection එක පරීක්ෂා කරන්න, ' +
-          'ad-blocker/VPN එකක් තියෙනවනම් නවත්තලා try කරන්න, නැත්නම් වෙන browser එකකින් try කරන්න.'
-        );
-        return;
-      }
-      loadScript(THREE_SOURCES[sourceIndex])
-        .then(function () { return loadScript('js/main.js'); })
-        .catch(function () { loadThreeThenGame(sourceIndex + 1); });
-    }
-
-    window.addEventListener('error', function (e) {
-      // Catches runtime errors thrown after scripts load successfully too.
-      showEngineError('⚠ Game එකේ error එකක් ආවා: ' + (e.message || 'unknown error') +
-        '. Page එක reload කරලා try කරන්න, නැත්නම් වෙන browser එකකින් try කරන්න.');
-    });
-
-    loadThreeThenGame(0);
-  </script>
+  <script src="js/noise.js"></script>
+  <script src="js/three.min.js"></script>
+  <script src="js/main.js"></script>
 </body>
-</html>
