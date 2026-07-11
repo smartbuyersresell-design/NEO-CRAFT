@@ -9,32 +9,31 @@
 
   W.generateWorld = () => {
     W.chunks.clear();
-    for (let cx = 0; cx < Math.ceil(W.SX / W.CHUNK); cx++) {
-      for (let cz = 0; cz < Math.ceil(W.SZ / W.CHUNK); cz++) {
-        const c = W.makeChunk(cx, cz);
-        for (let lx = 0; lx < W.CHUNK; lx++) for (let lz = 0; lz < W.CHUNK; lz++) {
-          const x = cx * W.CHUNK + lx, z = cz * W.CHUNK + lz;
-          if (x >= W.SX || z >= W.SZ) continue;
-          const h = W.groundHeightAt(x, z);
-          const waterLevel = 14;
-          for (let y = 0; y < W.SY; y++) {
-            let b = W.BLOCK.AIR;
-            if (y < h - 4) b = W.BLOCK.STONE;
-            else if (y < h - 1) b = W.BLOCK.DIRT;
-            else if (y === h - 1) b = h < waterLevel + 2 ? W.BLOCK.SAND : W.BLOCK.GRASS;
-            if (y > h - 1 && y <= waterLevel && h < waterLevel) b = W.BLOCK.WATER;
-            c.blocks[W.idx(lx, y, lz)] = b;
-          }
-          if (h > waterLevel + 1 && W.rnd() < 0.03) {
-            const trunk = 3 + Math.floor(W.rnd() * 3);
-            for (let i = 0; i < trunk; i++) W.setBlock(x, h + i, z, W.BLOCK.WOOD);
-            for (let ly = -2; ly <= 2; ly++) for (let lx2 = -2; lx2 <= 2; lx2++) for (let lz2 = -2; lz2 <= 2; lz2++) {
-              if (Math.abs(lx2) + Math.abs(ly) + Math.abs(lz2) < 5 || W.rnd() < 0.15) W.setBlock(x + lx2, h + trunk + ly, z + lz2, W.BLOCK.LEAVES);
-            }
-          }
-          if (h > waterLevel + 1 && W.rnd() < 0.08) W.setBlock(x, h, z, W.BLOCK.TALLGRASS);
-          if (h > waterLevel + 1 && W.rnd() < 0.03) W.setBlock(x, h, z, W.BLOCK.FLOWER);
+    const cxMax = Math.ceil(W.SX / W.CHUNK), czMax = Math.ceil(W.SZ / W.CHUNK);
+    for (let cx = 0; cx < cxMax; cx++) for (let cz = 0; cz < czMax; cz++) {
+      const c = W.makeChunk(cx, cz);
+      for (let lx = 0; lx < W.CHUNK; lx++) for (let lz = 0; lz < W.CHUNK; lz++) {
+        const x = cx * W.CHUNK + lx, z = cz * W.CHUNK + lz;
+        if (x >= W.SX || z >= W.SZ) continue;
+        const h = W.groundHeightAt(x, z);
+        const waterLevel = 14;
+        for (let y = 0; y < W.SY; y++) {
+          let b = W.BLOCK.AIR;
+          if (y < h - 4) b = W.BLOCK.STONE;
+          else if (y < h - 1) b = W.BLOCK.DIRT;
+          else if (y === h - 1) b = h < waterLevel + 2 ? W.BLOCK.SAND : W.BLOCK.GRASS;
+          if (y > h - 1 && y <= waterLevel && h < waterLevel) b = W.BLOCK.WATER;
+          c.blocks[W.idx(lx, y, lz)] = b;
         }
+        if (h > waterLevel + 1 && W.rnd() < 0.03) {
+          const trunk = 3 + Math.floor(W.rnd() * 3);
+          for (let i = 0; i < trunk; i++) W.setBlock(x, h + i, z, W.BLOCK.WOOD);
+          for (let ly = -2; ly <= 2; ly++) for (let lx2 = -2; lx2 <= 2; lx2++) for (let lz2 = -2; lz2 <= 2; lz2++) {
+            if (Math.abs(lx2) + Math.abs(ly) + Math.abs(lz2) < 5 || W.rnd() < 0.15) W.setBlock(x + lx2, h + trunk + ly, z + lz2, W.BLOCK.LEAVES);
+          }
+        }
+        if (h > waterLevel + 1 && W.rnd() < 0.08) W.setBlock(x, h, z, W.BLOCK.TALLGRASS);
+        if (h > waterLevel + 1 && W.rnd() < 0.03) W.setBlock(x, h, z, W.BLOCK.FLOWER);
       }
     }
     W.buildMesh();
@@ -61,7 +60,7 @@
     W.refreshHotbarCounts();
     W.updateToolLine();
     W.renderInventoryPanel();
-    if (W.showSaveToast) W.showSaveToast();
+    W.showSaveToast();
   };
 
   W.respawn = () => {
@@ -74,8 +73,7 @@
   };
 
   W.raycastVoxel = maxDist => {
-    const dir = new THREE.Vector3();
-    W.camera.getWorldDirection(dir);
+    const dir = new THREE.Vector3(); W.camera.getWorldDirection(dir);
     const origin = W.camera.position.clone();
     let prev = null;
     for (let t = 0; t < maxDist; t += 0.05) {
@@ -97,10 +95,7 @@
     return base / mult;
   };
 
-  W.getAttackDamage = () => {
-    const map = { 104: 4, 107: 7, 102: 2, 105: 5, 103: 3, 106: 4 };
-    return map[W.equippedTool] || 2;
-  };
+  W.getAttackDamage = () => ({ 104: 4, 107: 7, 102: 2, 105: 5, 103: 3, 106: 4 }[W.equippedTool] || 2);
 
   W.tryPlace = () => {
     const r = W.raycastVoxel(6);
@@ -282,17 +277,8 @@
     document.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'KeyE') W.toggleInventory(); if (/Digit[1-8]/.test(e.code)) W.selectSlot(+e.code.replace('Digit', '')); });
     document.addEventListener('keyup', e => keys[e.code] = false);
     document.addEventListener('pointerlockchange', () => pointerLocked = document.pointerLockElement === W.renderer.domElement);
-    document.addEventListener('mousemove', e => {
-      if (!pointerLocked) return;
-      W.player.yaw -= e.movementX * 0.0022;
-      W.player.pitch -= e.movementY * 0.0022;
-      W.player.pitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, W.player.pitch));
-    });
-    W.renderer.domElement.addEventListener('mousedown', e => {
-      if (!pointerLocked && !isMobile) { if (W.gameStarted) W.renderer.domElement.requestPointerLock(); return; }
-      if (e.button === 0) breakHeld = true;
-      if (e.button === 2) W.tryPlace();
-    });
+    document.addEventListener('mousemove', e => { if (!pointerLocked) return; W.player.yaw -= e.movementX * 0.0022; W.player.pitch -= e.movementY * 0.0022; W.player.pitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, W.player.pitch)); });
+    W.renderer.domElement.addEventListener('mousedown', e => { if (!pointerLocked && !isMobile) { if (W.gameStarted && W.renderer.domElement.requestPointerLock) W.renderer.domElement.requestPointerLock(); return; } if (e.button === 0) breakHeld = true; if (e.button === 2) W.tryPlace(); });
     document.addEventListener('mouseup', e => { if (e.button === 0) breakHeld = false; });
     W.renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
     if (isMobile) {
@@ -339,7 +325,6 @@
       document.getElementById('breakBtn').addEventListener('touchend', e => { breakHeld = false; e.preventDefault(); }, { passive: false });
       document.getElementById('placeBtn').addEventListener('touchstart', e => { W.tryPlace(); e.preventDefault(); }, { passive: false });
     }
-
     W.startLoop = () => {
       let last = performance.now();
       function frame(now) {
@@ -348,11 +333,9 @@
         if (W.gameStarted && W.player.alive) {
           W.elapsed += dt;
           if (W.playerAttackCooldown > 0) W.playerAttackCooldown -= dt;
-          if (W.damageFlashT > 0) W.damageFlashT -= dt;
           let fwd = 0, str = 0;
-          if (!isMobile) {
-            if (keys.KeyW) fwd += 1; if (keys.KeyS) fwd -= 1; if (keys.KeyD) str += 1; if (keys.KeyA) str -= 1;
-          } else { fwd = moveVec.y; str = moveVec.x; }
+          if (!isMobile) { if (keys.KeyW) fwd += 1; if (keys.KeyS) fwd -= 1; if (keys.KeyD) str += 1; if (keys.KeyA) str -= 1; }
+          else { fwd = moveVec.y; str = moveVec.x; }
           const len = Math.hypot(fwd, str);
           if (len > 1) { fwd /= len; str /= len; }
           const sinY = Math.sin(W.player.yaw), cosY = Math.cos(W.player.yaw);
@@ -378,7 +361,6 @@
           document.getElementById('hearts').textContent = W.heartsString(W.player.health);
           document.getElementById('hunger').textContent = W.hungerString(W.player.hunger);
           document.getElementById('clockLine').textContent = `${W.isDaylight() ? '☀' : '☾'} Day ${W.dayCount}`;
-          if (Math.random() < 0.001) W.saveGame();
         }
         W.renderer.render(W.scene, W.camera);
       }
