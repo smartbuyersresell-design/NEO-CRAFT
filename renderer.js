@@ -9,23 +9,15 @@
   document.body.appendChild(W.renderer.domElement);
   W.scene.background = new THREE.Color(0x8fd0ef);
   W.scene.fog = new THREE.Fog(0x8fd0ef, 40, 140);
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x445533, 0.9);
-  const sun = new THREE.DirectionalLight(0xfff3d0, 0.9);
-  const amb = new THREE.AmbientLight(0xffffff, 0.25);
-  W.scene.add(hemi, sun, amb);
-  W.hemi = hemi; W.sun = sun; W.amb = amb;
+  W.scene.add(new THREE.HemisphereLight(0xffffff, 0x445533, 0.9));
+  W.sun = new THREE.DirectionalLight(0xfff3d0, 0.9);
+  W.amb = new THREE.AmbientLight(0xffffff, 0.25);
+  W.scene.add(W.sun, W.amb);
   W.sunMesh = new THREE.Mesh(new THREE.SphereGeometry(4, 10, 10), new THREE.MeshBasicMaterial({ color: 0xfff2b0 }));
   W.moonMesh = new THREE.Mesh(new THREE.SphereGeometry(3, 10, 10), new THREE.MeshBasicMaterial({ color: 0xcfd8ee }));
   W.scene.add(W.sunMesh, W.moonMesh);
   W.mesh = null;
-  const F = [
-    [1,0,0,[1,0,0,1,1,0,1,1,1,1,0,1],'side'],
-    [-1,0,0,[0,0,1,0,1,1,0,1,0,0,0,0],'side'],
-    [0,1,0,[0,1,0,0,1,1,1,1,1,1,1,0],'top'],
-    [0,-1,0,[0,0,1,0,0,0,1,0,0,1,0,1],'bottom'],
-    [0,0,1,[1,0,1,1,1,1,0,1,1,0,0,1],'side'],
-    [0,0,-1,[0,0,0,0,1,0,1,1,0,1,0,0],'side']
-  ];
+  const F = [[1,0,0,[1,0,0,1,1,0,1,1,1,1,0,1],'side'],[-1,0,0,[0,0,1,0,1,1,0,1,0,0,0,0],'side'],[0,1,0,[0,1,0,0,1,1,1,1,1,1,1,0],'top'],[0,-1,0,[0,0,1,0,0,0,1,0,0,1,0,1],'bottom'],[0,0,1,[1,0,1,1,1,1,0,1,1,0,0,1],'side'],[0,0,-1,[0,0,0,0,1,0,1,1,0,1,0,0],'side']];
   W.buildMesh = () => {
     const pos = [], nor = [], col = [];
     for (const c of W.chunks.values()) {
@@ -41,7 +33,7 @@
           const shade = f[4] === 'top' ? 1 : (f[4] === 'bottom' ? 0.55 : 0.78);
           const base = bc[f[4]];
           const [r, g, bl] = base.map(v => v * shade);
-          const cr = f[3], order = [0,1,2, 0,2,3];
+          const cr = f[3], order = [0,1,2,0,2,3];
           for (const oi of order) {
             const vx = cr[oi*3], vy = cr[oi*3+1], vz = cr[oi*3+2];
             pos.push(gx + vx, y + vy, gz + vz);
