@@ -9,22 +9,19 @@
     t.style.opacity = 1;
     setTimeout(() => t.style.opacity = 0, 1200);
   };
-  W.exportWorld = () => {
-    const chunks = [];
-    for (const [k, c] of W.chunks.entries()) chunks.push([k, W.uint8ToBase64(c.blocks)]);
-    return {
-      chunks,
-      px: W.player.pos.x, py: W.player.pos.y, pz: W.player.pos.z,
-      yaw: W.player.yaw, pitch: W.player.pitch,
-      health: W.player.health, hunger: W.player.hunger,
-      inventory: W.inventory, selected: W.selected, equippedTool: W.equippedTool,
-      elapsed: W.elapsed, dayCount: W.dayCount, seed: W.seed
-    };
-  };
+  W.exportWorld = () => ({
+    chunks: [...W.chunks.entries()].map(([k, c]) => [k, W.uint8ToBase64(c.blocks)]),
+    px: W.player.pos.x, py: W.player.pos.y, pz: W.player.pos.z,
+    yaw: W.player.yaw, pitch: W.player.pitch,
+    health: W.player.health, hunger: W.player.hunger,
+    inventory: W.inventory, selected: W.selected, equippedTool: W.equippedTool,
+    elapsed: W.elapsed, dayCount: W.dayCount, seed: W.seed
+  });
   W.importWorld = data => {
     W.chunks.clear();
-    for (const [k, b64] of data.chunks || []) {
-      W.chunks.set(k, { cx: +k.split(',')[0], cz: +k.split(',')[1], blocks: W.base64ToUint8(b64), dirty: true });
+    for (const [k, b64] of (data.chunks || [])) {
+      const [cx, cz] = k.split(',').map(Number);
+      W.chunks.set(k, { cx, cz, blocks: W.base64ToUint8(b64), dirty: true });
     }
     W.player.pos.set(data.px, data.py, data.pz);
     W.player.yaw = data.yaw || 0;
