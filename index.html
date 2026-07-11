@@ -105,17 +105,36 @@
   </div>
 
   <script>
-    window.addEventListener('error', () => {
+    window.__threeLoaded = false;
+  </script>
+  <script src="three.min.js" onload="window.__threeLoaded=true"></script>
+
+  <script>
+    (function () {
       const loading = document.getElementById('loading');
-      if (loading) loading.textContent = 'Loading error. Check console or missing files.';
-    });
-    setTimeout(() => {
-      const loading = document.getElementById('loading');
-      if (loading && loading.style.display !== 'none') loading.textContent = 'Still loading...';
-    }, 4000);
+      const blocker = document.getElementById('blocker');
+      function show() {
+        if (loading) loading.style.display = 'none';
+        if (blocker) blocker.style.display = 'flex';
+      }
+      window.addEventListener('DOMContentLoaded', () => setTimeout(show, 200));
+      window.addEventListener('load', () => setTimeout(show, 500));
+      window.addEventListener('error', (e) => {
+        if (loading) loading.textContent = 'Error: ' + (e.message || 'script failed');
+        if (blocker) blocker.style.display = 'flex';
+      });
+      setTimeout(() => {
+        if (!window.__threeLoaded && loading) loading.textContent = 'three.min.js missing. Add local file.';
+      }, 2500);
+      setTimeout(() => {
+        if (loading && loading.style.display !== 'none') {
+          loading.textContent = 'Loading timed out. Check missing files.';
+          if (blocker) blocker.style.display = 'flex';
+        }
+      }, 8000);
+    })();
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="world.js"></script>
   <script src="chunk.js"></script>
   <script src="player.js"></script>
