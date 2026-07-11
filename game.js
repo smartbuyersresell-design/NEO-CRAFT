@@ -2,10 +2,7 @@
   'use strict';
   const W = window.NEO;
 
-  W.groundHeightAt = (x, z) => {
-    const h = Math.floor(18 + W.fbm(x, z) * 14 + W.valueNoise(x * 0.14, z * 0.14) * 3);
-    return Math.max(4, Math.min(W.SY - 8, h));
-  };
+  W.groundHeightAt = (x, z) => Math.max(4, Math.min(W.SY - 8, Math.floor(18 + W.fbm(x, z) * 14 + W.valueNoise(x * 0.14, z * 0.14) * 3)));
 
   W.generateWorld = () => {
     W.chunks.clear();
@@ -15,8 +12,7 @@
       for (let lx = 0; lx < W.CHUNK; lx++) for (let lz = 0; lz < W.CHUNK; lz++) {
         const x = cx * W.CHUNK + lx, z = cz * W.CHUNK + lz;
         if (x >= W.SX || z >= W.SZ) continue;
-        const h = W.groundHeightAt(x, z);
-        const waterLevel = 14;
+        const h = W.groundHeightAt(x, z), waterLevel = 14;
         for (let y = 0; y < W.SY; y++) {
           let b = W.BLOCK.AIR;
           if (y < h - 4) b = W.BLOCK.STONE;
@@ -60,7 +56,6 @@
     W.refreshHotbarCounts();
     W.updateToolLine();
     W.renderInventoryPanel();
-    W.showSaveToast();
   };
 
   W.respawn = () => {
@@ -164,7 +159,6 @@
     W.moonMesh.position.set(cx - Math.cos(angle) * 140, -Math.sin(angle) * 90 - 30, cz);
     W.sun.position.copy(W.sunMesh.position);
     W.sun.intensity = 0.15 + dayLight * 0.85;
-    W.hemi.intensity = 0.25 + dayLight * 0.65;
     W.amb.intensity = 0.06 + dayLight * 0.22;
     const sky = new THREE.Color(0x8fd0ef).lerp(new THREE.Color(0x0a0f1c), 1 - dayLight);
     W.scene.background = sky;
@@ -253,20 +247,6 @@
       row.querySelector('button').onclick = () => { W.equippedTool = id; W.updateToolLine(); W.renderInventoryPanel(); };
       toolList.appendChild(row);
     }
-    [108,109].forEach(id => {
-      const c = W.inventory[id] || 0;
-      if (!c) return;
-      anyTool = true;
-      const row = document.createElement('div');
-      row.className = 'invRow';
-      row.innerHTML = `<div class="name">${W.itemName(id)}</div><div class="cnt">${c}</div><button>Eat</button>`;
-      row.querySelector('button').onclick = () => {
-        if (!W.removeItem(id, 1)) return;
-        W.player.hunger = Math.min(100, W.player.hunger + (id === 108 ? 30 : 14));
-        W.renderInventoryPanel(); W.refreshHotbarCounts();
-      };
-      toolList.appendChild(row);
-    });
     if (!anyTool) toolList.innerHTML = '<div class="invRow"><div class="name">No tools or food yet.</div></div>';
   };
 
