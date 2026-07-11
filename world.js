@@ -32,8 +32,7 @@
     { id: 'ssword', name: 'Stone Sword', inputs: [{ item: 3, count: 2 }, { item: 101, count: 1 }], output: { item: 107, count: 1 } }
   ];
   W.SLOT_ORDER = [1, 2, 3, 4, 5, 6, 7, 8];
-  W.SX = 192; W.SY = 48; W.SZ = 192;
-  W.CHUNK = 16;
+  W.SX = 192; W.SY = 48; W.SZ = 192; W.CHUNK = 16;
   W.hash2 = (x, z) => { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453123; return s - Math.floor(s); };
   W.fade = t => t * t * (3 - 2 * t);
   W.lerp = (a, b, t) => a + (b - a) * t;
