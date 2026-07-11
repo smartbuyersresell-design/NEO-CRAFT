@@ -5,10 +5,10 @@
   W.key = (cx, cz) => `${cx},${cz}`;
   W.chunkOf = (x, z) => [Math.floor(x / W.CHUNK), Math.floor(z / W.CHUNK)];
   W.makeChunk = (cx, cz) => {
-    const key = W.key(cx, cz);
-    if (W.chunks.has(key)) return W.chunks.get(key);
+    const k = W.key(cx, cz);
+    if (W.chunks.has(k)) return W.chunks.get(k);
     const c = { cx, cz, blocks: new Uint8Array(W.CHUNK * W.SY * W.CHUNK), dirty: true };
-    W.chunks.set(key, c);
+    W.chunks.set(k, c);
     return c;
   };
   W.idx = (x, y, z) => x + z * W.CHUNK + y * W.CHUNK * W.CHUNK;
