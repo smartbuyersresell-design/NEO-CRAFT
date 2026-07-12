@@ -1,10 +1,16 @@
 (function () {
   'use strict';
   const W = window.NEO || (window.NEO = {});
-  W.BLOCK = { AIR: 0, GRASS: 1, DIRT: 2, STONE: 3, SAND: 4, WOOD: 5, LEAVES: 6, PLANKS: 7, TABLE: 8, WATER: 9, FLOWER: 10, TALLGRASS: 11 };
-  W.ITEM = { STICK: 101, WPICK: 102, WAXE: 103, WSWORD: 104, SPICK: 105, SAXE: 106, SSWORD: 107, PORK: 108, ROTTEN: 109 };
-  W.BLOCKNAMES = { 1: 'Grass', 2: 'Dirt', 3: 'Stone', 4: 'Sand', 5: 'Wood Log', 6: 'Leaves', 7: 'Planks', 8: 'Crafting Table', 9: 'Water', 10: 'Flower', 11: 'Tall Grass' };
-  W.ITEMNAMES = { 101: 'Stick', 102: 'Wood Pickaxe', 103: 'Wood Axe', 104: 'Wood Sword', 105: 'Stone Pickaxe', 106: 'Stone Axe', 107: 'Stone Sword', 108: 'Porkchop', 109: 'Rotten Flesh' };
+  W.BLOCK = { AIR: 0, GRASS: 1, DIRT: 2, STONE: 3, SAND: 4, WOOD: 5, LEAVES: 6, PLANKS: 7, TABLE: 8, WATER: 9, FLOWER: 10, TALLGRASS: 11, GLASS: 12 };
+  W.ITEM = { STICK: 101, WPICK: 102, WAXE: 103, WSWORD: 104, SPICK: 105, SAXE: 106, SSWORD: 107, PORK: 108, ROTTEN: 109, BEEF: 110, APPLE: 111 };
+  W.BLOCKNAMES = { 1: 'Grass', 2: 'Dirt', 3: 'Stone', 4: 'Sand', 5: 'Wood Log', 6: 'Leaves', 7: 'Planks', 8: 'Crafting Table', 9: 'Water', 10: 'Flower', 11: 'Tall Grass', 12: 'Glass' };
+  W.ITEMNAMES = { 101: 'Stick', 102: 'Wood Pickaxe', 103: 'Wood Axe', 104: 'Wood Sword', 105: 'Stone Pickaxe', 106: 'Stone Axe', 107: 'Stone Sword', 108: 'Porkchop', 109: 'Rotten Flesh', 110: 'Raw Beef', 111: 'Apple' };
+  W.FOOD = {
+    108: { hunger: 35, name: 'Porkchop' },
+    109: { hunger: 15, name: 'Rotten Flesh', poisonChance: 0.4, poisonDamage: 15 },
+    110: { hunger: 30, name: 'Raw Beef' },
+    111: { hunger: 15, name: 'Apple' }
+  };
   W.itemName = id => W.BLOCKNAMES[id] || W.ITEMNAMES[id] || ('Item ' + id);
   W.BLOCKCOLORS = {
     1: { top: [0.35, 0.70, 0.25], bottom: [0.42, 0.30, 0.16], side: [0.30, 0.56, 0.22] },
@@ -17,11 +23,13 @@
     8: { top: [0.60, 0.42, 0.24], bottom: [0.45, 0.32, 0.18], side: [0.52, 0.36, 0.20] },
     9: { top: [0.15, 0.45, 0.88], bottom: [0.15, 0.45, 0.88], side: [0.12, 0.37, 0.78] },
     10: { top: [0.94, 0.38, 0.70], bottom: [0.94, 0.38, 0.70], side: [0.94, 0.38, 0.70] },
-    11: { top: [0.25, 0.78, 0.25], bottom: [0.25, 0.78, 0.25], side: [0.25, 0.78, 0.25] }
+    11: { top: [0.25, 0.78, 0.25], bottom: [0.25, 0.78, 0.25], side: [0.25, 0.78, 0.25] },
+    12: { top: [0.80, 0.92, 0.95], bottom: [0.80, 0.92, 0.95], side: [0.80, 0.92, 0.95] }
   };
-  W.BREAKTIME = { 1: 2, 2: 2.5, 3: 4.5, 4: 2.8, 5: 4.5, 6: 1.2, 7: 2, 8: 3.5, 9: 1.8, 10: 0.8, 11: 0.5 };
+  W.BREAKTIME = { 1: 2, 2: 2.5, 3: 4.5, 4: 2.8, 5: 4.5, 6: 1.2, 7: 2, 8: 3.5, 9: 1.8, 10: 0.8, 11: 0.5, 12: 1.2 };
   W.RECIPES = [
     { id: 'planks', name: 'Planks x4', inputs: [{ item: 5, count: 1 }], output: { item: 7, count: 4 } },
+    { id: 'glass', name: 'Glass x1', inputs: [{ item: 4, count: 4 }], output: { item: 12, count: 1 } },
     { id: 'stick', name: 'Stick x4', inputs: [{ item: 7, count: 2 }], output: { item: 101, count: 4 } },
     { id: 'table', name: 'Crafting Table', inputs: [{ item: 7, count: 4 }], output: { item: 8, count: 1 } },
     { id: 'wpick', name: 'Wood Pickaxe', inputs: [{ item: 7, count: 3 }, { item: 101, count: 2 }], output: { item: 102, count: 1 } },
@@ -31,7 +39,7 @@
     { id: 'saxe', name: 'Stone Axe', inputs: [{ item: 3, count: 3 }, { item: 101, count: 2 }], output: { item: 106, count: 1 } },
     { id: 'ssword', name: 'Stone Sword', inputs: [{ item: 3, count: 2 }, { item: 101, count: 1 }], output: { item: 107, count: 1 } }
   ];
-  W.SLOT_ORDER = [1, 2, 3, 4, 5, 6, 7, 8];
+  W.SLOT_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 12];
   W.SX = 192; W.SY = 48; W.SZ = 192; W.CHUNK = 16;
   W.hash2 = (x, z) => { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453123; return s - Math.floor(s); };
   W.fade = t => t * t * (3 - 2 * t);

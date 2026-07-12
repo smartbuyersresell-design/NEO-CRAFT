@@ -1,0 +1,11 @@
+{
+  "name": "NEO CRAFT",
+  "short_name": "NeoCraft",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#0a0e14",
+  "theme_color": "#7ec850",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#7ec850" />
+  <title>NEO CRAFT</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #87CEEB; font-family: Segoe UI, Arial, sans-serif; touch-action: none; }
+    canvas { display: block; touch-action: none; }
+    #loading { position: fixed; inset: 0; z-index: 80; background: #0a0e14; color: #7CFC7C; display: flex; align-items: center; justify-content: center; font-size: 20px; letter-spacing: 2px; text-align: center; padding: 20px; }
+    .crosshair { position: fixed; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); pointer-events: none; z-index: 20; }
+    .crosshair::before, .crosshair::after { content: ""; position: absolute; background: rgba(255,255,255,0.9); box-shadow: 0 0 2px rgba(0,0,0,0.6); }
+    .crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
+    .crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
+    #breakBar { position: fixed; top: calc(50% - 16px); left: 50%; transform: translateX(-50%); width: 60px; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; overflow: hidden; z-index: 20; display: none; }
+    #breakBarFill { height: 100%; width: 0%; background: #ffe14d; }
+    #hotbar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 30; padding: 6px; background: rgba(0,0,0,0.25); border-radius: 10px; }
+    .slot { width: 46px; height: 46px; border: 2px solid rgba(255,255,255,0.4); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; text-shadow: 0 1px 2px #000; cursor: pointer; position: relative; }
+    .slot.active { border-color: #ffe14d; box-shadow: 0 0 8px #ffe14d; }
+    .slot span.num { position: absolute; top: 1px; left: 3px; font-size: 9px; opacity: 0.8; }
+    .slot span.cnt { position: absolute; bottom: 1px; right: 3px; font-size: 11px; font-weight: bold; }
+    #hud { position: fixed; top: 12px; left: 12px; color: white; z-index: 30; font-size: 12px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); background: rgba(0,0,0,0.28); padding: 8px 12px; border-radius: 8px; line-height: 1.5; min-width: 150px; }
+    #hud b { color: #ffe14d; }
+    #hearts { color: #ff5c5c; letter-spacing: 1px; }
+    #hunger { color: #e0b060; letter-spacing: 1px; }
+    #saveToast { position: fixed; top: 12px; right: 12px; z-index: 35; background: rgba(0,0,0,0.5); color: #9dff9d; padding: 6px 12px; border-radius: 6px; font-size: 12px; opacity: 0; transition: opacity 0.4s; }
+    #invBtn { position: fixed; top: 12px; right: 12px; z-index: 31; background: rgba(0,0,0,0.35); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
+    #invPanel { position: fixed; inset: 0; z-index: 60; background: rgba(10,14,20,0.88); display: none; align-items: center; justify-content: center; color: white; }
+    #invPanel .box { width: min(560px, 92vw); max-height: 82vh; overflow-y: auto; background: #1c2430; border: 3px solid #3a4658; border-radius: 10px; padding: 18px 20px; }
+    #invPanel h2 { margin: 0 0 10px; color: #7CFC7C; letter-spacing: 2px; }
+    #invPanel h3 { margin: 16px 0 8px; color: #ffe14d; font-size: 14px; border-bottom: 1px solid #3a4658; padding-bottom: 4px; }
+    .invRow { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 6px; font-size: 13px; }
+    .invRow:nth-child(odd) { background: rgba(255,255,255,0.03); }
+    .invRow .name { flex: 1; }
+    .invRow .cnt { width: 40px; text-align: center; color: #ffe14d; }
+    .invRow button { background: #3a6b3a; color: white; border: none; border-radius: 5px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
+    .invRow button:disabled { background: #444; color: #888; cursor: not-allowed; }
+    .invRow button.eq { background: #3a5a8a; }
+    .invRow button.eat { background: #b5651d; }
+    #closeInv { margin-top: 16px; width: 100%; padding: 10px; background: #8a3a3a; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+    #blocker { position: fixed; inset: 0; z-index: 50; background: rgba(10,14,20,0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; cursor: pointer; }
+    #blocker h1 { font-size: 52px; margin: 0 0 8px; letter-spacing: 4px; color: #7CFC7C; text-shadow: 3px 3px 0 #2d6a2d, 0 0 20px rgba(124,252,124,0.5); font-weight: 900; }
+    #blocker p { max-width: 520px; margin: 6px 0; font-size: 13px; opacity: 0.85; padding: 0 20px; }
+    #blocker .startBtn { margin-top: 10px; padding: 14px 34px; font-size: 16px; font-weight: bold; color: #123; background: linear-gradient(#8ee08e,#57c257); border: 3px solid #2d6a2d; border-radius: 8px; }
+    #blocker .newBtn { margin-top: 10px; padding: 10px 28px; font-size: 14px; font-weight: bold; color: #eee; background: linear-gradient(#7a7a7a,#4c4c4c); border: 3px solid #2a2a2a; border-radius: 8px; }
+    #deathScreen { position: fixed; inset: 0; z-index: 70; background: rgba(90,0,0,0.85); display: none; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; }
+    #deathScreen h1 { font-size: 44px; color: #ff6b6b; }
+    #respawnBtn { margin-top: 16px; padding: 12px 30px; font-size: 16px; background: #57c257; border: 3px solid #2d6a2d; border-radius: 8px; cursor: pointer; }
+    #mobileUI { position: fixed; inset: 0; z-index: 25; pointer-events: none; display: none; }
+    #joystickZone { position: absolute; left: 18px; bottom: 18px; width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.35); pointer-events: auto; }
+    #joystickKnob { position: absolute; width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.55); left: 37px; top: 37px; pointer-events: none; }
+    #lookZone { position: absolute; right: 0; top: 0; width: 60%; height: 100%; pointer-events: auto; }
+    .actionBtn { position: absolute; width: 64px; height: 64px; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; background: rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.4); }
+    #breakBtn { right: 20px; bottom: 130px; }
+    #placeBtn { right: 96px; bottom: 70px; }
+    #jumpBtn { right: 20px; bottom: 24px; }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading NEO CRAFT ...</div>
+  <div id="blocker" style="display:none">
+    <h1>NEO CRAFT</h1>
+    <p>A block-building survival sandbox — mine, craft, build, and survive the night.</p>
+    <p id="controlsHelp"></p>
+    <button type="button" class="startBtn" id="startBtn">CONTINUE WORLD</button>
+    <button type="button" class="newBtn" id="newBtn">NEW WORLD</button>
+  </div>
+  <div id="deathScreen">
+    <h1>YOU DIED</h1>
+    <button id="respawnBtn">Respawn</button>
+  </div>
+  <div id="hud">
+    <div><b>NEO CRAFT</b></div>
+    <div id="hearts"></div>
+    <div id="hunger"></div>
+    <div id="posLine">x:0 y:0 z:0</div>
+    <div id="toolLine">Tool: Hand</div>
+    <div id="clockLine">☀ Day 1</div>
+  </div>
+  <div id="saveToast">World saved</div>
+  <button id="invBtn">🎒 Inventory (E)</button>
+  <div id="crosshair" class="crosshair"></div>
+  <div id="breakBar"><div id="breakBarFill"></div></div>
+  <div id="hotbar"></div>
+  <div id="invPanel">
+    <div class="box">
+      <h2>Inventory & Crafting</h2>
+      <h3>Materials</h3>
+      <div id="matList"></div>
+      <h3>Crafting</h3>
+      <div id="craftList"></div>
+      <h3>Tools & Food</h3>
+      <div id="toolList"></div>
+      <button id="closeInv">Close</button>
+    </div>
+  </div>
+  <div id="mobileUI">
+    <div id="joystickZone"><div id="joystickKnob"></div></div>
+    <div id="lookZone"></div>
+    <div class="actionBtn" id="breakBtn">⛏</div>
+    <div class="actionBtn" id="placeBtn">🧱</div>
+    <div class="actionBtn" id="jumpBtn">⤒</div>
+  </div>
+
+  <script>
+    window.__threeLoaded = false;
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onload="window.__threeLoaded=true"></script>
+
+  <script>
+    (function () {
+      const loading = document.getElementById('loading');
+      const blocker = document.getElementById('blocker');
+      function show() {
+        if (loading) loading.style.display = 'none';
+        if (blocker) blocker.style.display = 'flex';
+      }
+      window.addEventListener('DOMContentLoaded', () => setTimeout(show, 200));
+      window.addEventListener('load', () => setTimeout(show, 500));
+      window.addEventListener('error', (e) => {
+        if (loading) loading.textContent = 'Error: ' + (e.message || 'script failed');
+        if (blocker) blocker.style.display = 'flex';
+      });
+      setTimeout(() => {
+        if (!window.__threeLoaded && loading) loading.textContent = 'Could not load three.js from CDN. Check your internet connection.';
+      }, 2500);
+      setTimeout(() => {
+        if (loading && loading.style.display !== 'none') {
+          loading.textContent = 'Loading timed out. Check missing files.';
+          if (blocker) blocker.style.display = 'flex';
+        }
+      }, 8000);
+    })();
+  </script>
+
+  <script src="world.js"></script>
+  <script src="chunk.js"></script>
+  <script src="player.js"></script>
+  <script src="mobs.js"></script>
+  <script src="inventory.js"></script>
+  <script src="crafting.js"></script>
+  <script src="renderer.js"></script>
+  <script src="ui.js"></script>
+  <script src="save.js"></script>
+  <script src="game.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
