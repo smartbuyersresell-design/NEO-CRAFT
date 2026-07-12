@@ -1,8 +1,8 @@
-# NEO CRAFT
+# NEO CRAFT ✨️
 
 A browser voxel sandbox inspired by classic block-building games.
 
-## Features
+## Features 🎃
 - Chunk-based procedural world
 - Grass, dirt, stone, sand, water, flowers, tall grass, trees, glass
 - Day/night cycle
